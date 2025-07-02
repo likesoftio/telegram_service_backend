@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+asyncpg
+python-dotenv
+alembic
+pydantic-settings
+pytest
+httpx
+PyJWT
+celery
+redis
+telethon
+loguru
+Jinja2
+openai

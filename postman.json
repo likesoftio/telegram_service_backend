@@ -1,0 +1,177 @@
+{
+    "info": {
+      "name": "Telegram AI Monitoring",
+      "_postman_id": "abc12345-tele-ai-monitor",
+      "description": "Collection for Telegram monitoring platform with AI responses",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+      { "key": "base_url", "value": "http://localhost:8000" },
+      { "key": "token", "value": "YOUR_JWT_HERE" }
+    ],
+    "item": [
+      {
+        "name": "🔐 Auth",
+        "item": [
+          {
+            "name": "Telegram Login Callback",
+            "request": {
+              "method": "POST",
+              "header": [],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n  \"telegram_id\": 123456789,\n  \"username\": \"myuser\",\n  \"first_name\": \"Roma\",\n  \"auth_date\": 1719990000,\n  \"hash\": \"VALID_HASH\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/auth/telegram",
+                "host": ["{{base_url}}"],
+                "path": ["auth", "telegram"]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "📁 Projects",
+        "item": [
+          {
+            "name": "Create Project",
+            "request": {
+              "method": "POST",
+              "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+              "body": {
+                "mode": "raw",
+                "raw": "{ \"name\": \"AI Support\", \"description\": \"Customer replies\" }"
+              },
+              "url": {
+                "raw": "{{base_url}}/projects",
+                "host": ["{{base_url}}"],
+                "path": ["projects"]
+              }
+            }
+          },
+          {
+            "name": "List Projects",
+            "request": {
+              "method": "GET",
+              "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+              "url": { "raw": "{{base_url}}/projects", "host": ["{{base_url}}"], "path": ["projects"] }
+            }
+          }
+        ]
+      },
+      {
+        "name": "📂 Subprojects",
+        "item": [
+          {
+            "name": "Create Subproject",
+            "request": {
+              "method": "POST",
+              "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+              "body": {
+                "mode": "raw",
+                "raw": "{ \"project_id\": \"{{project_id}}\", \"name\": \"Demo Leads\" }"
+              },
+              "url": { "raw": "{{base_url}}/subprojects", "host": ["{{base_url}}"], "path": ["subprojects"] }
+            }
+          }
+        ]
+      },
+      {
+        "name": "📡 Telegram Integrations",
+        "item": [
+          {
+            "name": "Add Bot Integration",
+            "request": {
+              "method": "POST",
+              "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+              "body": {
+                "mode": "raw",
+                "raw": "{ \"type\": \"bot\", \"bot_token\": \"123456:ABC-DEF\" }"
+              },
+              "url": { "raw": "{{base_url}}/telegram/integrations", "host": ["{{base_url}}"], "path": ["telegram", "integrations"] }
+            }
+          },
+          {
+            "name": "Add Phone Integration",
+            "request": {
+              "method": "POST",
+              "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+              "body": {
+                "mode": "raw",
+                "raw": "{ \"type\": \"phone\", \"phone_number\": \"+1234567890\", \"api_id\": 123456, \"api_hash\": \"abcdef123456\" }"
+              },
+              "url": { "raw": "{{base_url}}/telegram/integrations", "host": ["{{base_url}}"], "path": ["telegram", "integrations"] }
+            }
+          }
+        ]
+      },
+      {
+        "name": "📺 Monitored Channels",
+        "item": [
+          {
+            "name": "Add Channel to Monitor",
+            "request": {
+              "method": "POST",
+              "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n  \"subproject_id\": \"{{subproject_id}}\",\n  \"integration_id\": \"{{integration_id}}\",\n  \"channel_id\": \"-100123456789\",\n  \"channel_name\": \"@promo_test\",\n  \"filters\": { \"keywords\": [\"скидка\", \"вебинар\"] }\n}"
+              },
+              "url": { "raw": "{{base_url}}/channels", "host": ["{{base_url}}"], "path": ["channels"] }
+            }
+          }
+        ]
+      },
+      {
+        "name": "📬 Messages & Moderation",
+        "item": [
+          {
+            "name": "Get Pending Messages",
+            "request": {
+              "method": "GET",
+              "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+              "url": { "raw": "{{base_url}}/messages?status=PENDING", "host": ["{{base_url}}"], "path": ["messages"], "query": [{ "key": "status", "value": "PENDING" }] }
+            }
+          },
+          {
+            "name": "Approve Message",
+            "request": {
+              "method": "POST",
+              "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+              "url": { "raw": "{{base_url}}/messages/{{message_id}}/approve", "host": ["{{base_url}}"], "path": ["messages", "{{message_id}}", "approve"] }
+            }
+          },
+          {
+            "name": "Decline Message",
+            "request": {
+              "method": "POST",
+              "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+              "url": { "raw": "{{base_url}}/messages/{{message_id}}/decline", "host": ["{{base_url}}"], "path": ["messages", "{{message_id}}", "decline"] }
+            }
+          },
+          {
+            "name": "Like Message",
+            "request": {
+              "method": "POST",
+              "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+              "url": { "raw": "{{base_url}}/messages/{{message_id}}/like", "host": ["{{base_url}}"], "path": ["messages", "{{message_id}}", "like"] }
+            }
+          }
+        ]
+      },
+      {
+        "name": "📊 Stats",
+        "item": [
+          {
+            "name": "Get Daily Stats",
+            "request": {
+              "method": "GET",
+              "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+              "url": { "raw": "{{base_url}}/stats/daily", "host": ["{{base_url}}"], "path": ["stats", "daily"] }
+            }
+          }
+        ]
+      }
+    ]
+  }

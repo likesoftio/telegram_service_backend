@@ -1,0 +1,103 @@
+@startuml
+' Устанавливаем стиль
+hide circle
+skinparam linetype ortho
+
+entity "User" as users {
+  *id : UUID
+  telegram_id : BIGINT
+  username : TEXT
+  full_name : TEXT
+  avatar_url : TEXT
+  created_at : TIMESTAMP
+}
+
+entity "Project" as projects {
+  *id : UUID
+  user_id : UUID
+  name : TEXT
+  description : TEXT
+  created_at : TIMESTAMP
+}
+
+entity "Subproject" as subprojects {
+  *id : UUID
+  project_id : UUID
+  name : TEXT
+  created_at : TIMESTAMP
+}
+
+entity "PromptTemplate" as prompt_templates {
+  *id : UUID
+  subproject_id : UUID
+  name : TEXT
+  template_text : TEXT
+  model : TEXT
+  is_active : BOOLEAN
+  created_at : TIMESTAMP
+}
+
+entity "TelegramIntegration" as telegram_integrations {
+  *id : UUID
+  user_id : UUID
+  type : ENUM
+  api_id : INT
+  api_hash : TEXT
+  bot_token : TEXT
+  phone_number : TEXT
+  session_path : TEXT
+  status : ENUM
+  created_at : TIMESTAMP
+}
+
+entity "MonitoredChannel" as monitored_channels {
+  *id : UUID
+  subproject_id : UUID
+  integration_id : UUID
+  channel_id : TEXT
+  channel_name : TEXT
+  filters : JSONB
+  is_active : BOOLEAN
+  last_checked_at : TIMESTAMP
+}
+
+entity "Message" as messages {
+  *id : UUID
+  channel_id : UUID
+  telegram_message_id : BIGINT
+  text : TEXT
+  matched_prompt_id : UUID
+  suggested_reply : TEXT
+  status : ENUM
+  sent_at : TIMESTAMP
+  liked_by_user : BOOLEAN
+  created_at : TIMESTAMP
+}
+
+entity "MessageStats" as message_stats {
+  *id : UUID
+  user_id : UUID
+  project_id : UUID
+  messages_total : INT
+  messages_sent : INT
+  messages_declined : INT
+  avg_moderation_time : INT
+  liked_messages : INT
+  date : DATE
+}
+
+' Связи
+users ||--o{ projects
+projects ||--o{ subprojects
+subprojects ||--o{ prompt_templates
+
+users ||--o{ telegram_integrations
+subprojects ||--o{ monitored_channels
+telegram_integrations ||--o{ monitored_channels
+
+monitored_channels ||--o{ messages
+prompt_templates ||--o{ messages
+
+users ||--o{ message_stats
+projects ||--o{ message_stats
+@enduml

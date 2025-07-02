@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: telegram_service_api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./app:/app/app
+      - ./app/db:/app/app/db
+  db:
+    image: postgres:15
+    container_name: telegram_service_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: telegram_service
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  redis:
+    image: redis:7
+    container_name: telegram_service_redis
+    ports:
+      - "6379:6379"
+    restart: always
+  worker:
+    build: .
+    container_name: telegram_service_worker
+    command: celery -A app.core.celery_app.celery worker --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      - api
+      - redis
+      - db
+    volumes:
+      - ./app:/app/app
+  beat:
+    build: .
+    container_name: telegram_service_beat
+    command: celery -A app.core.celery_app.celery beat --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      - api
+      - redis
+      - db
+    volumes:
+      - ./app:/app/app
+
+volumes:
+  pgdata: 
