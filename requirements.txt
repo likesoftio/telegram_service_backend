@@ -14,3 +14,4 @@ telethon
 loguru
 Jinja2
 openai
+passlib[bcrypt]

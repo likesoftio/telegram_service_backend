@@ -17,6 +17,8 @@ def upgrade():
         sa.Column('last_name', sa.String),
         sa.Column('is_active', sa.Boolean, default=True),
         sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
+        sa.Column('email', sa.String, unique=True, index=True, nullable=True),
+        sa.Column('password_hash', sa.String, nullable=True),
     )
 
 def downgrade():

@@ -11,6 +11,7 @@ import jwt
 from app.core.jwt_utils import create_access_token, create_refresh_token, decode_jwt
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from datetime import datetime, timezone
+from passlib.hash import bcrypt
 
 DATABASE_URL = f"postgresql+asyncpg://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
 engine = create_async_engine(DATABASE_URL, echo=False)
@@ -52,6 +53,17 @@ def create_jwt(user_id: int) -> str:
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
+class EmailRegisterRequest(BaseModel):
+    email: str
+    password: str
+    username: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+
+class EmailLoginRequest(BaseModel):
+    email: str
+    password: str
+
 router = APIRouter()
 
 @router.post("/auth/telegram")
@@ -81,4 +93,37 @@ async def refresh_token(credentials: HTTPAuthorizationCredentials = Depends(HTTP
     payload = decode_jwt(credentials.credentials, token_type="refresh")
     user_id = int(payload["sub"])
     access_token = create_access_token(user_id)
-    return {"access_token": access_token, "token_type": "bearer"} 
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@router.post("/auth/register")
+async def register_email(payload: EmailRegisterRequest):
+    async with SessionLocal() as session:
+        q = await session.execute(select(User).where(User.email == payload.email))
+        user = q.scalar_one_or_none()
+        if user:
+            raise HTTPException(status_code=400, detail="Email already registered")
+        password_hash = bcrypt.hash(payload.password)
+        user = User(
+            email=payload.email,
+            password_hash=password_hash,
+            username=payload.username,
+            first_name=payload.first_name,
+            last_name=payload.last_name,
+        )
+        session.add(user)
+        await session.commit()
+        await session.refresh(user)
+        access_token = create_access_token(user.id)
+        refresh_token = create_refresh_token(user.id)
+        return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+
+@router.post("/auth/login")
+async def login_email(payload: EmailLoginRequest):
+    async with SessionLocal() as session:
+        q = await session.execute(select(User).where(User.email == payload.email))
+        user = q.scalar_one_or_none()
+        if not user or not user.password_hash or not bcrypt.verify(payload.password, user.password_hash):
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+        access_token = create_access_token(user.id)
+        refresh_token = create_refresh_token(user.id)
+        return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"} 
