@@ -5,7 +5,7 @@ from app.core.jwt_utils import get_current_user_id
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy.future import select
 from app.core.config import settings
-from app.models.subproject import Subproject
+from app.models.subproject import Subproject, SubprojectOut
 
 DATABASE_URL = f"postgresql+asyncpg://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
 engine = create_async_engine(DATABASE_URL, echo=False)
@@ -20,7 +20,7 @@ class ProjectOut(BaseModel):
     owner_id: int
     created_at: str
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 router = APIRouter()
 
