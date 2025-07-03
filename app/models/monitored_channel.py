@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, J
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.db.base import Base
+from app.models import *
 
 class MonitoredChannel(Base):
     __tablename__ = "monitored_channels"
