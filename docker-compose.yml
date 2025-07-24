@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   api:
     build: .
@@ -9,53 +7,76 @@ services:
     env_file:
       - .env
     depends_on:
-      - db
-      - redis
+      - database
+    networks:
+      - stt_network
     volumes:
-      - ./app:/app/app
-      - ./app/db:/app/app/db
-  db:
-    image: postgres:15
+      - .:/code
+
+  database:
+    image: postgres:16.4
     container_name: telegram_service_db
     restart: always
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: telegram_service
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_RO_USER_PASSWORD=${POSTGRES_RO_USER_PASSWORD}
     ports:
-      - "5432:5432"
+      - "5433:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - stt_network
+
   redis:
     image: redis:7
     container_name: telegram_service_redis
     ports:
       - "6379:6379"
     restart: always
+    networks:
+      - stt_network
+
   worker:
     build: .
     container_name: telegram_service_worker
-    command: celery -A app.core.celery_app.celery worker --loglevel=info
+    command: celery -A src.core.celery_app.celery worker --loglevel=info
     env_file:
       - .env
     depends_on:
       - api
       - redis
-      - db
+      - database
     volumes:
-      - ./app:/app/app
+      - .:/code
+    networks:
+      - stt_network
+
   beat:
     build: .
     container_name: telegram_service_beat
-    command: celery -A app.core.celery_app.celery beat --loglevel=info
+    command: celery -A src.core.celery_app.celery beat --loglevel=info
     env_file:
       - .env
     depends_on:
       - api
       - redis
-      - db
+      - database
     volumes:
-      - ./app:/app/app
+      - .:/code
+    networks:
+      - stt_network
 
 volumes:
-  pgdata: 
+  pgdata:
+networks:
+  stt_network:
+    driver: bridge
